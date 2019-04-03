@@ -80,6 +80,15 @@ class ftp_clicent():
         config.read('User_info.ini')
         return config.get('User_info',strings)
 
+    #定义从Path_info配置文件中获取连接信息的函数
+    def from_file_getPath(self,strings):
+        try:
+            config = configparser.ConfigParser()
+            config.read('Path_info.ini')
+            return config.get('Path_info',strings)
+        except Exception as e:
+            print(str(e))
+
     #定义关闭连接的函数
     def close_client(self):
         try:
@@ -106,15 +115,16 @@ class ftp_clicent():
     def download(self,remotepath):
         try:
             str1 = re.findall(r'[^/:*?"<>|\r\n]+$', remotepath)
-            new_path="D:\Desktop\FTP_Server"+str1[0]
+            str2=str(self.from_file_getPath('file_path')).replace('/','\\')
+            path=str2+'\\'+str(str1[0]).replace('\\','-')
             if self.ftp:
                 buffersize = 102400
-                fp= open(new_path,'wb')
+                fp= open(path,'wb')
                 self.ftp.retrbinary('RETR '+str1[0],fp.write,buffersize)
                 return 1
             elif self.ftp2:
                 buffersize2 = 102400
-                fp2 =open(new_path,'wb')
+                fp2 =open(path,'wb')
                 self.ftp2.retrbinary('RETR '+str1[0],fp2.write,buffersize2)
                 return 1
             else:

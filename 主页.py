@@ -114,19 +114,25 @@ class zhuye(QDialog,Ui_Dialog):
     @pyqtSlot()
     def on_pushButton_3_clicked(self):
         try:
-            item = self.treeWidget.currentItem().text(1)#获取tree中当前被选中的某一行的值
-            if self.client:
-                status = self.client.download(item)#为服务器文件的绝对路径，从文件目录树的点击中获取
-                if status ==1:
-                    QMessageBox.information(self,'提示','下载成功！')
+            if self.treeWidget.currentItem():
+                if self.from_file_getPath('file_path')!='':
+                    item = self.treeWidget.currentItem().text(1)#获取tree中当前被选中的某一行的值
+                    if self.client:
+                        status = self.client.download(item)#为服务器文件的绝对路径，从文件目录树的点击中获取
+                        if status ==1:
+                            QMessageBox.information(self,'提示','下载成功！')
+                        else:
+                            QMessageBox.information(self,'提示','下载失败！')
+                    elif self.client2:
+                        status = self.client2.download(item)  # 为服务器文件的绝对路径，从文件目录树的点击中获取
+                        if status == 1:
+                            QMessageBox.information(self, '提示', '下载成功！')
+                        else:
+                            QMessageBox.information(self, '提示', '下载失败！')
                 else:
-                    QMessageBox.information(self,'提示','下载失败！')
-            elif self.client2:
-                status = self.client2.download(item)  # 为服务器文件的绝对路径，从文件目录树的点击中获取
-                if status == 1:
-                    QMessageBox.information(self, '提示', '下载成功！')
-                else:
-                    QMessageBox.information(self, '提示', '下载失败！')
+                    QMessageBox.information(self,'提示','还未设置下载文件的保存路径！')
+            else:
+                QMessageBox.information(self,'警告','未选择要下载的服务器文件！')
         except Exception as e:
             QMessageBox.information(self,'错误',str(e))
 
@@ -170,6 +176,44 @@ class zhuye(QDialog,Ui_Dialog):
         except Exception as e:
             QMessageBox.information(self,"错误",str(e))
 
+        # 定义从Path_info配置文件中获取连接信息的函数
+    def from_file_getPath(self, strings):
+            try:
+                config = configparser.ConfigParser()
+                config.read('Path_info.ini')
+                return config.get('Path_info', strings)
+            except Exception as e:
+                print(str(e))
+    #保存下载存储路径的函数
+    @pyqtSlot()
+    def on_pushButton_9_clicked(self):
+        try:
+            if self.lineEdit_6.text()=='':
+                QMessageBox.information(self,'警告','输入不能为空!')
+            else:
+                config = configparser.ConfigParser()
+                config.add_section('Path_info')
+                config.set('Path_info', 'file_path', str(self.lineEdit_6.text()))
+                with open('Path_info.ini', 'w') as conf:
+                    config.write(conf)
+                QMessageBox.information(self, '提示', '下载路径信息保存成功！')
+                self.lineEdit_6.setText('')
+        except Exception as e:
+            QMessageBox.information(self,'错误',str(e))
+    #设定浏览按键，返回文件浏览目录的函数
+    def setBrowerPath(self):
+        try:
+            download_path = QFileDialog.getExistingDirectory(self,'浏览','D:/Desktop/FTP_Server')
+            return download_path
+        except Exception as e:
+            QMessageBox.information(self,'错误',str(e))
+    @pyqtSlot()
+    def on_pushButton_8_clicked(self):
+        try:
+            file_path = self.setBrowerPath()
+            self.lineEdit_6.setText(str(file_path))
+        except Exception as e:
+            QMessageBox.information(self,'错误',str(e))
     #判断是文件还是文件夹
     def isdir(self,strings):
         try:
